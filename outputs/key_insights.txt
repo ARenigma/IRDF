@@ -1,0 +1,32 @@
+KEY INSIGHTS FOR RETAIL DEMAND IN INDIA
+=======================================
+
+SEASONAL PATTERNS:
+- Peak retail sales occur in December
+- Lowest retail sales occur in May
+
+ECONOMIC INDICATORS IMPACT:
+Positive impact on retail sales:
+- gold_price_90d_avg: correlation 0.9401
+- cpi_6m_avg: correlation 0.9398
+- cpi_3m_avg: correlation 0.9392
+- gold_price_180d_avg: correlation 0.9383
+- cpi_index: correlation 0.9356
+
+Negative impact on retail sales:
+- lending_rate_6m_avg: correlation -0.0111
+
+- oil_price_mom: correlation -0.0334
+
+- iip_combined_yoy: correlation -0.0628
+
+- interest_rate_y: correlation -0.0878
+
+- interest_rate_x: correlation -0.0917
+
+MOST IMPORTANT PREDICTIVE FEATURES:
+Feature importance analysis not available
+
+
+LEAD-LAG RELATIONSHIPS:
+Lead-lag analysis not available

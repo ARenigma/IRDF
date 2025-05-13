@@ -1,0 +1,50 @@
+# Python bytecode
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Distribution / packaging
+dist/
+build/
+*.egg-info/
+
+# Virtual environments
+venv/
+env/
+ENV/
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# Data files (uncomment if you don't want to track data)
+# data/raw/
+# data/processed/
+
+# Model files
+models/*.pkl
+models/optimized/*.pkl
+
+# IDE specific files
+.idea/
+.vscode/
+
+# Logs
+logs/
+*.log
+
+# OS specific
+.DS_Store
+Thumbs.db
+
+# API keys and sensitive information
+.env
+*.key
+
+# Output files that can be regenerated
+outputs/backtesting/*
+outputs/scenarios/*
+visualizations/*
+
+# Temporary files
+temp/
+*.tmp 
