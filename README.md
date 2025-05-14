@@ -14,7 +14,7 @@ The India Retail Demand Forecaster is a comprehensive macroeconomic modeling sys
 - **Advanced Time Series Modeling**: Achieves high forecast accuracy (R² of 0.82) using specialized time series techniques
 - **Uncertainty Quantification**: Provides confidence intervals and prediction ranges for all forecasts
 
-## Model Performance
+## Model Performance (Current iteration)
 
 - **Prediction Accuracy**: R² of 0.82 on out-of-sample test data
 - **Error Metrics**: RMSE of 0.029 and MAE of 0.025
@@ -35,7 +35,7 @@ Refer to [USAGE_GUIDE.md](USAGE_GUIDE.md) for information on how to use the fore
 ## Project Structure
 
 ```
-Macro_Model/
+IRDF/
 ├── collectors/              # Data collection scripts
 ├── data/                    # Raw and processed data
 │   ├── processed/           # Cleaned and feature-engineered data
