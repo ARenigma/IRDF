@@ -13,8 +13,8 @@ This guide provides practical instructions for running, modifying, and extending
 
 1. Clone the repository:
    ```bash
-   git clone <repository-url>
-   cd Macro_Model
+   git clone https://github.com/ARenigma/IRDF
+   cd IRDF
    ```
 
 2. Install required dependencies:

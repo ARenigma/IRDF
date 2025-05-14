@@ -13,8 +13,8 @@ This guide will help you set up the India Retail Demand Forecaster project envir
 ### 1. Clone the Repository
 
 ```bash
-git clone https://github.com/yourusername/Macro_Model.git
-cd Macro_Model
+git clone https://github.com/ARenigma/IRDF
+cd IRDF
 ```
 
 ### 2. Create a Virtual Environment (Recommended)
