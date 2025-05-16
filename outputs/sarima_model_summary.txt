@@ -1,0 +1,19 @@
+SARIMA MODEL WITH LOG TRANSFORMATION
+===================================
+
+Model: SARIMA(1,1,1)×(1,1,1,12)
+
+Transformations applied:
+- Log transformation to address non-normality and heteroskedasticity
+
+Performance metrics (original scale):
+- RMSE: 269.3987
+- MAE: 175.6140
+- R²: -0.0362
+
+Overfitting check:
+- Train RMSE: 12603.5493
+- Test RMSE: 269.3987
+- Ratio (Test/Train): 0.02
+
+Forecast generated on: 2025-05-16 16:33:01
