@@ -59,6 +59,43 @@ def mean_absolute_percentage_error(y_true, y_pred):
     mask = y_true != 0
     return np.mean(np.abs((y_true[mask] - y_pred[mask]) / y_true[mask])) * 100
 
+def mean_absolute_scaled_error(y_true, y_pred, y_train):
+    """
+    Calculate Mean Absolute Scaled Error (MASE)
+    A scale-invariant metric that compares the MAE to the MAE of a naive forecast
+    """
+    y_true, y_pred = np.array(y_true), np.array(y_pred)
+    
+    # Calculate MAE
+    mae = np.mean(np.abs(y_true - y_pred))
+    
+    # Calculate the MAE of a naive seasonal forecast (assuming 12-month seasonality)
+    # Using the training data to establish the naive forecast denominator
+    y_train = np.array(y_train)
+    naive_errors = np.abs(y_train[12:] - y_train[:-12])
+    
+    # Avoid division by zero
+    if np.mean(naive_errors) == 0:
+        return np.nan
+    
+    return mae / np.mean(naive_errors)
+
+def weighted_rmse(y_true, y_pred):
+    """
+    Calculate weighted RMSE where errors are weighted inversely by the magnitude
+    of the actual values to reduce the impact of scale
+    """
+    y_true, y_pred = np.array(y_true), np.array(y_pred)
+    
+    # Calculate weights inversely proportional to the magnitude
+    weights = 1 / (np.abs(y_true) + 1)  # Adding 1 to avoid division by zero
+    weights = weights / np.sum(weights) * len(weights)  # Normalize weights
+    
+    # Calculate weighted squared errors
+    weighted_squared_errors = weights * (y_true - y_pred)**2
+    
+    return np.sqrt(np.mean(weighted_squared_errors))
+
 def fit_original_sarima_model(series, train_data, test_data):
     """Fit original SARIMA model with grid search"""
     print("\nFitting original SARIMA model (grid search)...")
@@ -90,31 +127,42 @@ def fit_original_sarima_model(series, train_data, test_data):
     mae = mean_absolute_error(test_data, predictions)
     r2 = r2_score(test_data, predictions)
     mape = mean_absolute_percentage_error(test_data, predictions)
+    mase = mean_absolute_scaled_error(test_data, predictions, train_data)
+    wrmse = weighted_rmse(test_data, predictions)
     
     # Calculate in-sample (training) metrics
     train_pred = results.predict(start=0, end=len(train_data)-1)
     train_mse = mean_squared_error(train_data, train_pred)
     train_rmse = np.sqrt(train_mse)
     train_mape = mean_absolute_percentage_error(train_data, train_pred)
+    train_wrmse = weighted_rmse(train_data, train_pred)
     
     print(f"\n{model_name} Test Set Performance:")
     print(f"RMSE: {rmse:.4f}")
+    print(f"Weighted RMSE: {wrmse:.4f}")
     print(f"MAE: {mae:.4f}")
     print(f"MAPE: {mape:.4f}%")
+    print(f"MASE: {mase:.4f}")
     print(f"R²: {r2:.4f}")
     print(f"Train RMSE: {train_rmse:.4f}")
+    print(f"Train Weighted RMSE: {train_wrmse:.4f}")
     print(f"Train MAPE: {train_mape:.4f}%")
     print(f"Test/Train RMSE Ratio: {rmse/train_rmse:.4f}")
+    print(f"Test/Train Weighted RMSE Ratio: {wrmse/train_wrmse:.4f}")
     
     return results, predictions, {
         'model_name': model_name,
         'RMSE': rmse, 
+        'Weighted_RMSE': wrmse,
         'MAE': mae,
         'MAPE': mape,
+        'MASE': mase,
         'R2': r2,
         'Train_RMSE': train_rmse,
+        'Train_Weighted_RMSE': train_wrmse,
         'Train_MAPE': train_mape,
-        'Ratio': rmse/train_rmse
+        'RMSE_Ratio': rmse/train_rmse,
+        'Weighted_RMSE_Ratio': wrmse/train_wrmse
     }
 
 def fit_log_transformed_sarima_model(series, train_data, test_data):
@@ -153,6 +201,8 @@ def fit_log_transformed_sarima_model(series, train_data, test_data):
     mae = mean_absolute_error(test_data, predictions)
     r2 = r2_score(test_data, predictions)
     mape = mean_absolute_percentage_error(test_data, predictions)
+    mase = mean_absolute_scaled_error(test_data, predictions, train_data)
+    wrmse = weighted_rmse(test_data, predictions)
     
     # Calculate in-sample (training) metrics on original scale
     log_train_pred = results.predict(start=0, end=len(log_train)-1)
@@ -160,25 +210,48 @@ def fit_log_transformed_sarima_model(series, train_data, test_data):
     train_mse = mean_squared_error(train_data, train_pred)
     train_rmse = np.sqrt(train_mse)
     train_mape = mean_absolute_percentage_error(train_data, train_pred)
+    train_wrmse = weighted_rmse(train_data, train_pred)
+    
+    # Calculate metrics in log space for comparison
+    log_mse = mean_squared_error(log_test, log_predictions)
+    log_rmse = np.sqrt(log_mse)
+    log_train_mse = mean_squared_error(log_train, log_train_pred)
+    log_train_rmse = np.sqrt(log_train_mse)
     
     print(f"\n{model_name} Test Set Performance:")
     print(f"RMSE: {rmse:.4f}")
+    print(f"Weighted RMSE: {wrmse:.4f}")
     print(f"MAE: {mae:.4f}")
     print(f"MAPE: {mape:.4f}%")
+    print(f"MASE: {mase:.4f}")
     print(f"R²: {r2:.4f}")
     print(f"Train RMSE: {train_rmse:.4f}")
+    print(f"Train Weighted RMSE: {train_wrmse:.4f}")
     print(f"Train MAPE: {train_mape:.4f}%")
     print(f"Test/Train RMSE Ratio: {rmse/train_rmse:.4f}")
+    print(f"Test/Train Weighted RMSE Ratio: {wrmse/train_wrmse:.4f}")
+    
+    print(f"\nLog-space metrics:")
+    print(f"Log-space RMSE: {log_rmse:.4f}")
+    print(f"Log-space Train RMSE: {log_train_rmse:.4f}")
+    print(f"Log-space RMSE Ratio: {log_rmse/log_train_rmse:.4f}")
     
     return results, predictions, {
         'model_name': model_name,
         'RMSE': rmse, 
+        'Weighted_RMSE': wrmse,
         'MAE': mae,
         'MAPE': mape,
+        'MASE': mase,
         'R2': r2,
         'Train_RMSE': train_rmse,
+        'Train_Weighted_RMSE': train_wrmse,
         'Train_MAPE': train_mape,
-        'Ratio': rmse/train_rmse
+        'RMSE_Ratio': rmse/train_rmse,
+        'Weighted_RMSE_Ratio': wrmse/train_wrmse,
+        'Log_RMSE': log_rmse,
+        'Log_Train_RMSE': log_train_rmse,
+        'Log_RMSE_Ratio': log_rmse/log_train_rmse
     }
 
 def plot_forecasts(series, train_data, test_data, original_predictions, log_predictions, original_metrics, log_metrics):
@@ -270,6 +343,24 @@ def plot_forecasts(series, train_data, test_data, original_predictions, log_pred
     plt.grid(True)
     plt.savefig('visualizations/model_comparison/percentage_errors.png')
     plt.close()
+    
+    # Plot weighted errors
+    plt.figure(figsize=(14, 6))
+    
+    # Calculate weighted errors (error / magnitude)
+    original_weighted_errors = (test_data - original_predictions) / (np.abs(test_data) + 1)
+    log_weighted_errors = (test_data - log_predictions) / (np.abs(test_data) + 1)
+    
+    plt.plot(test_data.index, original_weighted_errors, label=f"{original_metrics['model_name']}", color='blue')
+    plt.plot(test_data.index, log_weighted_errors, label=f"{log_metrics['model_name']}", color='red')
+    plt.axhline(y=0, color='black', linestyle='-')
+    plt.title('Weighted Errors Comparison (Error / Magnitude)')
+    plt.xlabel('Date')
+    plt.ylabel('Weighted Error')
+    plt.legend()
+    plt.grid(True)
+    plt.savefig('visualizations/model_comparison/weighted_errors.png')
+    plt.close()
 
 def analyze_test_set(test_data):
     """Analyze test set characteristics"""
@@ -337,24 +428,41 @@ def main():
     # Compare metrics
     print("\nMetrics Comparison:")
     metrics_df = pd.DataFrame({
-        'Metric': ['RMSE', 'MAE', 'MAPE (%)', 'R²', 'Train RMSE', 'Train MAPE (%)', 'Test/Train RMSE Ratio'],
+        'Metric': ['RMSE', 'Weighted RMSE', 'MAE', 'MAPE (%)', 'MASE', 'R²', 
+                  'Train RMSE', 'Train Weighted RMSE', 'Train MAPE (%)', 
+                  'Test/Train RMSE Ratio', 'Test/Train Weighted RMSE Ratio',
+                  'Log-space RMSE', 'Log-space Train RMSE', 'Log-space RMSE Ratio'],
         'Original SARIMA': [
             original_metrics['RMSE'], 
+            original_metrics['Weighted_RMSE'],
             original_metrics['MAE'],
             original_metrics['MAPE'],
+            original_metrics['MASE'],
             original_metrics['R2'],
             original_metrics['Train_RMSE'],
+            original_metrics['Train_Weighted_RMSE'],
             original_metrics['Train_MAPE'],
-            original_metrics['Ratio']
+            original_metrics['RMSE_Ratio'],
+            original_metrics['Weighted_RMSE_Ratio'],
+            np.nan,
+            np.nan,
+            np.nan
         ],
         'Log-transformed SARIMA': [
             log_metrics['RMSE'], 
+            log_metrics['Weighted_RMSE'],
             log_metrics['MAE'],
             log_metrics['MAPE'],
+            log_metrics['MASE'],
             log_metrics['R2'],
             log_metrics['Train_RMSE'],
+            log_metrics['Train_Weighted_RMSE'],
             log_metrics['Train_MAPE'],
-            log_metrics['Ratio']
+            log_metrics['RMSE_Ratio'],
+            log_metrics['Weighted_RMSE_Ratio'],
+            log_metrics['Log_RMSE'],
+            log_metrics['Log_Train_RMSE'],
+            log_metrics['Log_RMSE_Ratio']
         ]
     })
     print(metrics_df)
@@ -403,6 +511,19 @@ def main():
     print(f"Original model better at {better_original_pct}/{len(test_data)} points ({better_original_pct/len(test_data)*100:.1f}%)")
     print(f"Log-transformed model better at {better_log_pct}/{len(test_data)} points ({better_log_pct/len(test_data)*100:.1f}%)")
     print(f"Ties: {ties_pct}/{len(test_data)} points ({ties_pct/len(test_data)*100:.1f}%)")
+    
+    # Calculate weighted error differences
+    original_weighted_errors = abs((test_data - original_predictions) / (np.abs(test_data) + 1))
+    log_weighted_errors = abs((test_data - log_predictions) / (np.abs(test_data) + 1))
+    
+    better_original_w = sum(original_weighted_errors < log_weighted_errors)
+    better_log_w = sum(log_weighted_errors < original_weighted_errors)
+    ties_w = sum(np.isclose(original_weighted_errors, log_weighted_errors))
+    
+    print(f"\nWeighted error comparison:")
+    print(f"Original model better at {better_original_w}/{len(test_data)} points ({better_original_w/len(test_data)*100:.1f}%)")
+    print(f"Log-transformed model better at {better_log_w}/{len(test_data)} points ({better_log_w/len(test_data)*100:.1f}%)")
+    print(f"Ties: {ties_w}/{len(test_data)} points ({ties_w/len(test_data)*100:.1f}%)")
     
     print("\nAnalysis complete. Results saved to visualizations/model_comparison/")
 
